@@ -40,16 +40,32 @@ export const ResultScreen = ({ playerName, score, total, difficulty, onRestart }
     
     setIsDownloading(true);
     try {
+      // Wait for any animations or rendering to complete
+      await new Promise(resolve => setTimeout(resolve, 500));
+      
       const { default: html2canvas } = await import('html2canvas');
-      const canvas = await html2canvas(certificateRef.current, {
+      
+      const element = certificateRef.current;
+      
+      const canvas = await html2canvas(element, {
         backgroundColor: '#0a0f1a',
         scale: 2,
+        useCORS: true,
+        allowTaint: true,
+        height: element.offsetHeight,
+        width: element.offsetWidth,
+        scrollX: 0,
+        scrollY: 0,
+        windowWidth: element.offsetWidth,
+        windowHeight: element.offsetHeight
       });
       
       const link = document.createElement('a');
       link.download = `cyber-safety-certificate-${playerName.toLowerCase().replace(/\s+/g, '-')}.png`;
       link.href = canvas.toDataURL('image/png');
+      document.body.appendChild(link);
       link.click();
+      document.body.removeChild(link);
     } catch (error) {
       console.error('Failed to generate PNG certificate:', error);
     } finally {
@@ -62,12 +78,25 @@ export const ResultScreen = ({ playerName, score, total, difficulty, onRestart }
     
     setIsDownloading(true);
     try {
+      // Wait for any animations or rendering to complete
+      await new Promise(resolve => setTimeout(resolve, 500));
+      
       const { default: html2canvas } = await import('html2canvas');
       const { default: jsPDF } = await import('jspdf');
       
-      const canvas = await html2canvas(certificateRef.current, {
+      const element = certificateRef.current;
+      
+      const canvas = await html2canvas(element, {
         backgroundColor: '#0a0f1a',
         scale: 2,
+        useCORS: true,
+        allowTaint: true,
+        height: element.offsetHeight,
+        width: element.offsetWidth,
+        scrollX: 0,
+        scrollY: 0,
+        windowWidth: element.offsetWidth,
+        windowHeight: element.offsetHeight
       });
       
       const imgData = canvas.toDataURL('image/png');
@@ -80,7 +109,10 @@ export const ResultScreen = ({ playerName, score, total, difficulty, onRestart }
       const imgWidth = 297; // A4 landscape width in mm
       const imgHeight = (canvas.height * imgWidth) / canvas.width;
       
-      pdf.addImage(imgData, 'PNG', 0, 0, imgWidth, imgHeight);
+      // Center the image on the page if it's smaller than A4
+      const yPosition = imgHeight < 210 ? (210 - imgHeight) / 2 : 0;
+      
+      pdf.addImage(imgData, 'PNG', 0, yPosition, imgWidth, imgHeight);
       pdf.save(`cyber-safety-certificate-${playerName.toLowerCase().replace(/\s+/g, '-')}.pdf`);
     } catch (error) {
       console.error('Failed to generate PDF certificate:', error);
@@ -137,57 +169,115 @@ export const ResultScreen = ({ playerName, score, total, difficulty, onRestart }
         <div 
           ref={certificateRef}
           className="cyber-card p-8 md:p-12 relative overflow-hidden animate-fade-in-up-delay-1"
+          style={{
+            backgroundColor: '#0a0f1a',
+            border: '1px solid rgba(255, 255, 255, 0.1)',
+            borderRadius: '12px',
+            color: '#ffffff',
+            minHeight: '400px',
+            width: '100%'
+          }}
         >
           {/* Decorative corners */}
-          <div className="absolute top-4 left-4 w-8 h-8 border-l-2 border-t-2 border-primary" />
-          <div className="absolute top-4 right-4 w-8 h-8 border-r-2 border-t-2 border-primary" />
-          <div className="absolute bottom-4 left-4 w-8 h-8 border-l-2 border-b-2 border-primary" />
-          <div className="absolute bottom-4 right-4 w-8 h-8 border-r-2 border-b-2 border-primary" />
+          <div 
+            className="absolute top-4 left-4 w-8 h-8 border-l-2 border-t-2 border-primary" 
+            style={{ borderColor: '#22c55e' }} 
+          />
+          <div 
+            className="absolute top-4 right-4 w-8 h-8 border-r-2 border-t-2 border-primary" 
+            style={{ borderColor: '#22c55e' }} 
+          />
+          <div 
+            className="absolute bottom-4 left-4 w-8 h-8 border-l-2 border-b-2 border-primary" 
+            style={{ borderColor: '#22c55e' }} 
+          />
+          <div 
+            className="absolute bottom-4 right-4 w-8 h-8 border-r-2 border-b-2 border-primary" 
+            style={{ borderColor: '#22c55e' }} 
+          />
 
           <div className="text-center">
             {/* Certificate header */}
             <div className="flex items-center justify-center gap-3 mb-6">
-              <Shield className="w-8 h-8 text-primary" />
-              <h2 className="font-display text-xl md:text-2xl cyber-text">
+              <Shield className="w-8 h-8 text-primary" style={{ color: '#22c55e' }} />
+              <h2 className="font-display text-xl md:text-2xl cyber-text" style={{ color: '#ffffff', fontSize: '1.5rem', fontWeight: 'bold' }}>
                 CYBER GUARDIAN
               </h2>
-              <Shield className="w-8 h-8 text-primary" />
+              <Shield className="w-8 h-8 text-primary" style={{ color: '#22c55e' }} />
             </div>
 
-            <div className="text-xs text-muted-foreground tracking-widest mb-8">
+            <div className="text-xs text-muted-foreground tracking-widest mb-8" style={{ color: '#94a3b8' }}>
               CERTIFICATE OF COMPLETION
             </div>
 
             {/* Recipient name */}
             <div className="mb-8">
-              <div className="text-sm text-muted-foreground mb-2">This certifies that</div>
-              <div className="font-display text-2xl md:text-3xl cyber-text-cyan py-2 border-b border-secondary/30">
+              <div className="text-sm text-muted-foreground mb-2" style={{ color: '#94a3b8' }}>This certifies that</div>
+              <div 
+                className="font-display text-2xl md:text-3xl cyber-text-cyan py-2 border-b border-secondary/30" 
+                style={{ 
+                  color: '#06b6d4', 
+                  fontSize: '2rem', 
+                  fontWeight: 'bold',
+                  borderBottom: '1px solid rgba(255, 255, 255, 0.2)',
+                  paddingBottom: '8px'
+                }}
+              >
                 {playerName.toUpperCase()}
               </div>
             </div>
 
             {/* Achievement */}
             <div className="mb-8">
-              <div className="text-sm text-muted-foreground mb-2">has successfully completed the</div>
-              <div className="font-display text-lg text-foreground mb-2">
+              <div className="text-sm text-muted-foreground mb-2" style={{ color: '#94a3b8' }}>has successfully completed the</div>
+              <div className="font-display text-lg text-foreground mb-2" style={{ color: '#ffffff', fontSize: '1.125rem', fontWeight: 'bold' }}>
                 CYBER SECURITY AWARENESS TRAINING
               </div>
-              <div className="text-sm text-muted-foreground">
+              <div className="text-sm text-muted-foreground" style={{ color: '#94a3b8' }}>
                 {difficulty.toUpperCase()} Level • Score: {score}/{total} ({percentage}%)
               </div>
             </div>
 
             {/* Badge */}
-            <div className="inline-flex items-center justify-center w-20 h-20 rounded-full bg-primary/10 mb-6 border-2 border-primary/30">
-              <PerformanceIcon className={`w-10 h-10 ${performance.color}`} />
+            <div 
+              className="inline-flex items-center justify-center w-20 h-20 rounded-full bg-primary/10 mb-6 border-2 border-primary/30" 
+              style={{ 
+                backgroundColor: 'rgba(34, 197, 94, 0.1)', 
+                border: '2px solid rgba(34, 197, 94, 0.3)' 
+              }}
+            >
+              <PerformanceIcon 
+                className={`w-10 h-10 ${performance.color}`} 
+                style={{ 
+                  color: performance.color.includes('success') ? '#22c55e' : 
+                        performance.color.includes('warning') ? '#f59e0b' : 
+                        performance.color.includes('secondary') ? '#6b7280' : '#9ca3af' 
+                }} 
+              />
             </div>
 
-            <div className={`font-display text-lg ${performance.color} mb-6`}>
+            <div 
+              className={`font-display text-lg ${performance.color} mb-6`} 
+              style={{ 
+                color: performance.color.includes('success') ? '#22c55e' : 
+                      performance.color.includes('warning') ? '#f59e0b' : 
+                      performance.color.includes('secondary') ? '#6b7280' : '#9ca3af',
+                fontSize: '1.125rem',
+                fontWeight: 'bold' 
+              }}
+            >
               {performance.title}
             </div>
 
             {/* Date and ID */}
-            <div className="flex items-center justify-between text-xs text-muted-foreground pt-6 border-t border-border">
+            <div 
+              className="flex items-center justify-between text-xs text-muted-foreground pt-6 border-t border-border" 
+              style={{ 
+                color: '#94a3b8', 
+                paddingTop: '24px', 
+                borderTop: '1px solid rgba(255, 255, 255, 0.1)' 
+              }}
+            >
               <span>Date: {currentDate}</span>
               <span>ID: CG-{Date.now().toString(36).toUpperCase()}</span>
             </div>
