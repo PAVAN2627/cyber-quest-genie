@@ -1,5 +1,5 @@
-import { useEffect, useRef, useCallback, useState } from 'react';
-import { Trophy, Medal, Target, Download, RotateCcw, Shield, Award, FileImage, FileText } from 'lucide-react';
+import { useEffect, useRef } from 'react';
+import { Trophy, Medal, Target, RotateCcw, Shield, Award } from 'lucide-react';
 import { useSound } from '@/hooks/useSound';
 
 interface ResultScreenProps {
@@ -13,7 +13,6 @@ interface ResultScreenProps {
 export const ResultScreen = ({ playerName, score, total, difficulty, onRestart }: ResultScreenProps) => {
   const certificateRef = useRef<HTMLDivElement>(null);
   const { playVictorySound } = useSound();
-  const [isDownloading, setIsDownloading] = useState(false);
   
   const percentage = (score / total) * 100;
   const isPerfect = score === total;
@@ -34,92 +33,6 @@ export const ResultScreen = ({ playerName, score, total, difficulty, onRestart }
 
   const performance = getPerformance();
   const PerformanceIcon = performance.icon;
-
-  const downloadCertificateAsPNG = useCallback(async () => {
-    if (!certificateRef.current || isDownloading) return;
-    
-    setIsDownloading(true);
-    try {
-      // Wait for any animations or rendering to complete
-      await new Promise(resolve => setTimeout(resolve, 500));
-      
-      const { default: html2canvas } = await import('html2canvas');
-      
-      const element = certificateRef.current;
-      
-      const canvas = await html2canvas(element, {
-        backgroundColor: '#0a0f1a',
-        scale: 2,
-        useCORS: true,
-        allowTaint: true,
-        height: element.offsetHeight,
-        width: element.offsetWidth,
-        scrollX: 0,
-        scrollY: 0,
-        windowWidth: element.offsetWidth,
-        windowHeight: element.offsetHeight
-      });
-      
-      const link = document.createElement('a');
-      link.download = `cyber-safety-certificate-${playerName.toLowerCase().replace(/\s+/g, '-')}.png`;
-      link.href = canvas.toDataURL('image/png');
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-    } catch (error) {
-      console.error('Failed to generate PNG certificate:', error);
-    } finally {
-      setIsDownloading(false);
-    }
-  }, [playerName, isDownloading]);
-
-  const downloadCertificateAsPDF = useCallback(async () => {
-    if (!certificateRef.current || isDownloading) return;
-    
-    setIsDownloading(true);
-    try {
-      // Wait for any animations or rendering to complete
-      await new Promise(resolve => setTimeout(resolve, 500));
-      
-      const { default: html2canvas } = await import('html2canvas');
-      const { default: jsPDF } = await import('jspdf');
-      
-      const element = certificateRef.current;
-      
-      const canvas = await html2canvas(element, {
-        backgroundColor: '#0a0f1a',
-        scale: 2,
-        useCORS: true,
-        allowTaint: true,
-        height: element.offsetHeight,
-        width: element.offsetWidth,
-        scrollX: 0,
-        scrollY: 0,
-        windowWidth: element.offsetWidth,
-        windowHeight: element.offsetHeight
-      });
-      
-      const imgData = canvas.toDataURL('image/png');
-      const pdf = new jsPDF({
-        orientation: 'landscape',
-        unit: 'mm',
-        format: 'a4'
-      });
-      
-      const imgWidth = 297; // A4 landscape width in mm
-      const imgHeight = (canvas.height * imgWidth) / canvas.width;
-      
-      // Center the image on the page if it's smaller than A4
-      const yPosition = imgHeight < 210 ? (210 - imgHeight) / 2 : 0;
-      
-      pdf.addImage(imgData, 'PNG', 0, yPosition, imgWidth, imgHeight);
-      pdf.save(`cyber-safety-certificate-${playerName.toLowerCase().replace(/\s+/g, '-')}.pdf`);
-    } catch (error) {
-      console.error('Failed to generate PDF certificate:', error);
-    } finally {
-      setIsDownloading(false);
-    }
-  }, [playerName, isDownloading]);
 
   const currentDate = new Date().toLocaleDateString('en-US', {
     year: 'numeric',
@@ -284,39 +197,15 @@ export const ResultScreen = ({ playerName, score, total, difficulty, onRestart }
           </div>
         </div>
 
-        {/* Action buttons */}
-        <div className="flex flex-col sm:flex-row gap-4 mt-8 animate-fade-in-up-delay-2">
-          <button
-            onClick={downloadCertificateAsPNG}
-            disabled={isDownloading}
-            className="flex-1 flex items-center justify-center gap-2 p-4 rounded-lg
-              bg-primary text-primary-foreground font-display font-bold
-              hover:shadow-[0_0_30px_hsl(142_70%_45%_/_0.4)] transition-all duration-300
-              disabled:opacity-50 disabled:cursor-not-allowed"
-          >
-            <FileImage className="w-5 h-5" />
-            {isDownloading ? 'GENERATING...' : 'DOWNLOAD PNG'}
-          </button>
-          
-          <button
-            onClick={downloadCertificateAsPDF}
-            disabled={isDownloading}
-            className="flex-1 flex items-center justify-center gap-2 p-4 rounded-lg
-              bg-secondary text-secondary-foreground font-display font-bold
-              hover:shadow-[0_0_30px_hsl(220_65%_45%_/_0.4)] transition-all duration-300
-              disabled:opacity-50 disabled:cursor-not-allowed"
-          >
-            <FileText className="w-5 h-5" />
-            {isDownloading ? 'GENERATING...' : 'DOWNLOAD PDF'}
-          </button>
-          
+        {/* Action button */}
+        <div className="flex justify-center mt-8 animate-fade-in-up-delay-2">
           <button
             onClick={onRestart}
-            className="flex-1 flex items-center justify-center gap-2 p-4 rounded-lg
-              border-2 border-muted-foreground text-muted-foreground font-display font-bold
-              hover:bg-muted-foreground/10 transition-all duration-300"
+            className="flex items-center justify-center gap-2 px-8 py-4 rounded-lg
+              bg-primary text-primary-foreground font-display font-bold text-lg
+              hover:shadow-[0_0_30px_hsl(142_70%_45%_/_0.4)] transition-all duration-300"
           >
-            <RotateCcw className="w-5 h-5" />
+            <RotateCcw className="w-6 h-6" />
             TRY AGAIN
           </button>
         </div>
